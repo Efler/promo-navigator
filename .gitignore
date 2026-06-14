@@ -42,3 +42,8 @@ frontend/.vite/
 frontend/*.tsbuildinfo
 
 .run
+
+# CICD
+/infra/scripts/redeploy-app.sh
+.github
+

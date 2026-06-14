@@ -1,6 +1,8 @@
 import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { GuestOnlyRoute } from '../../features/auth/GuestOnlyRoute'
 import { RequireAuth } from '../../features/auth/RequireAuth'
+import { BundleConstructorPage } from '../../pages/bundles/BundleConstructorPage'
+import { BundleListPage } from '../../pages/bundles/BundleListPage'
 import { MechanicsOverviewPage } from '../../pages/home/MechanicsOverviewPage'
 import { MechanicWorkspacePage } from '../../pages/home/MechanicWorkspacePage'
 import { PrivateLayout } from '../../pages/home/PrivateLayout'
@@ -57,12 +59,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'bundles',
-        element: (
-          <MechanicWorkspacePage
-            title="Комплекты"
-            description="Собирайте товары в комплекты и предлагайте покупателям готовые наборы по выгодной цене."
-          />
-        ),
+        element: <BundleListPage />,
+      },
+      {
+        path: 'bundles/new',
+        element: <BundleConstructorPage />,
       },
       {
         path: '*',
