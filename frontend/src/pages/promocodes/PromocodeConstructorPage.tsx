@@ -115,9 +115,9 @@ function SelectionOption({
         p="md"
         style={{
           border: selected
-            ? '1px solid rgba(174, 37, 115, 0.28)'
-            : '1px solid rgba(174, 37, 115, 0.1)',
-          background: selected ? 'rgba(174, 37, 115, 0.08)' : 'rgba(255, 255, 255, 0.96)',
+            ? '1px solid rgba(154, 65, 254, 0.28)'
+            : '1px solid rgba(154, 65, 254, 0.1)',
+          background: selected ? 'rgba(154, 65, 254, 0.08)' : 'rgba(255, 255, 255, 0.96)',
           transition: 'all 160ms ease',
         }}
       >
@@ -163,12 +163,12 @@ function CompactProductCard({
         style={{
           height: '100%',
           border: selected
-            ? '1px solid rgba(174, 37, 115, 0.36)'
-            : '1px solid rgba(174, 37, 115, 0.1)',
+            ? '1px solid rgba(154, 65, 254, 0.36)'
+            : '1px solid rgba(154, 65, 254, 0.1)',
           background: selected
-            ? 'linear-gradient(180deg, rgba(252,236,246,1) 0%, rgba(255,255,255,1) 100%)'
+            ? 'linear-gradient(180deg, rgba(243,236,255,1) 0%, rgba(255,255,255,1) 100%)'
             : 'rgba(255, 255, 255, 0.98)',
-          boxShadow: selected ? '0 16px 30px rgba(174, 37, 115, 0.12)' : undefined,
+          boxShadow: selected ? '0 16px 30px rgba(154, 65, 254, 0.12)' : undefined,
           transition: 'all 160ms ease',
         }}
       >
@@ -581,9 +581,9 @@ export function PromocodeConstructorPage() {
           shadow="md"
           p={{ base: 'lg', md: 'xl' }}
           style={{
-            border: '1px solid rgba(174, 37, 115, 0.1)',
+            border: '1px solid rgba(154, 65, 254, 0.1)',
             background:
-              'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(250,242,247,0.93))',
+              'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,239,252,0.96))',
           }}
         >
           <Stack gap="md">
@@ -675,7 +675,7 @@ export function PromocodeConstructorPage() {
           radius="xl"
           p={{ base: 'lg', md: 'xl' }}
           shadow="sm"
-          style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+          style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
         >
           <Stack gap="lg">
             <Title order={3}>Тип промокода</Title>
@@ -697,7 +697,7 @@ export function PromocodeConstructorPage() {
                 p="lg"
                 bg="brand.0"
                 style={{
-                  border: '1px solid rgba(174, 37, 115, 0.16)',
+                  border: '1px solid rgba(154, 65, 254, 0.16)',
                 }}
               >
                 <Stack gap="sm">
@@ -715,7 +715,7 @@ export function PromocodeConstructorPage() {
           radius="xl"
           p={{ base: 'lg', md: 'xl' }}
           shadow="sm"
-          style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+          style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
         >
           <Stack gap="lg">
             <div>
@@ -742,7 +742,7 @@ export function PromocodeConstructorPage() {
           radius="xl"
           p={{ base: 'lg', md: 'xl' }}
           shadow="sm"
-          style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+          style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
         >
           <Stack gap="lg">
             <div>
@@ -801,7 +801,7 @@ export function PromocodeConstructorPage() {
                         p="sm"
                         radius="xl"
                         shadow="sm"
-                        style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+                        style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
                       >
                         <Group align="start" wrap="nowrap" gap="md">
                           <Skeleton height={72} width={6} radius="xl" />
@@ -829,7 +829,7 @@ export function PromocodeConstructorPage() {
                   <Paper
                     radius="xl"
                     p="xl"
-                    style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+                    style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
                   >
                     <Stack align="center" gap="sm">
                       <ThemeIcon size={48} radius="xl" variant="light" color="brand">
@@ -873,7 +873,7 @@ export function PromocodeConstructorPage() {
           radius="xl"
           p={{ base: 'lg', md: 'xl' }}
           shadow="sm"
-          style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+          style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
         >
           <Stack gap="lg">
             <Title order={3}>Промокод</Title>
@@ -952,11 +952,11 @@ export function PromocodeConstructorPage() {
             styles={{
               root: {
                 minHeight: 58,
-                boxShadow: '0 16px 30px rgba(174, 37, 115, 0.18)',
+                boxShadow: '0 16px 30px rgba(154, 65, 254, 0.18)',
                 transition: 'transform 160ms ease, box-shadow 160ms ease, filter 160ms ease',
                 '&:hover': {
                   transform: 'translateY(-1px)',
-                  boxShadow: '0 20px 38px rgba(174, 37, 115, 0.24)',
+                  boxShadow: '0 20px 38px rgba(154, 65, 254, 0.24)',
                   filter: 'saturate(1.05)',
                 },
               },

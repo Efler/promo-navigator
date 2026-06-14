@@ -61,9 +61,9 @@ export function PromocodeListPage() {
         p={{ base: 'lg', md: 'xl' }}
         shadow="md"
         style={{
-          border: '1px solid rgba(174, 37, 115, 0.1)',
+          border: '1px solid rgba(154, 65, 254, 0.1)',
           background:
-            'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(250,242,247,0.93))',
+            'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,239,252,0.96))',
         }}
       >
         <Group justify="space-between" align="start" gap="lg">
@@ -93,7 +93,7 @@ export function PromocodeListPage() {
         radius="xl"
         p={{ base: 'lg', md: 'xl' }}
         shadow="sm"
-        style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+        style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
       >
         <Stack gap="lg">
           <Group justify="space-between" align="center">
@@ -136,7 +136,7 @@ export function PromocodeListPage() {
             <Paper
               radius="xl"
               p="xl"
-              style={{ border: '1px dashed rgba(174, 37, 115, 0.2)' }}
+              style={{ border: '1px dashed rgba(154, 65, 254, 0.22)' }}
             >
               <Stack align="center" gap="sm">
                 <ThemeIcon size={52} radius="xl" variant="light" color="brand">

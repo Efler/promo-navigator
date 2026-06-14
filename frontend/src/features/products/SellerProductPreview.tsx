@@ -58,7 +58,7 @@ export function SellerProductPreview({ sellerId }: SellerProductPreviewProps) {
           p={{ base: 'lg', md: 'xl' }}
           radius="xl"
           shadow="sm"
-          style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+          style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
         >
           <Stack gap="lg">
             <div>
@@ -105,9 +105,9 @@ export function SellerProductPreview({ sellerId }: SellerProductPreviewProps) {
             radius="xl"
             shadow="sm"
             style={{
-              border: '1px dashed rgba(174, 37, 115, 0.38)',
+              border: '1px dashed rgba(154, 65, 254, 0.32)',
               background:
-                'linear-gradient(180deg, rgba(253,247,250,1) 0%, rgba(255,255,255,1) 100%)',
+                'linear-gradient(180deg, rgba(247,247,250,1) 0%, rgba(255,255,255,1) 100%)',
             }}
           >
             <Stack align="center" gap="sm" py="xl">
@@ -130,7 +130,7 @@ export function SellerProductPreview({ sellerId }: SellerProductPreviewProps) {
                 p="lg"
                 radius="xl"
                 shadow="sm"
-                style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+                style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
               >
                 <Stack gap="md">
                   <Skeleton height={28} radius="md" />
@@ -159,7 +159,7 @@ export function SellerProductPreview({ sellerId }: SellerProductPreviewProps) {
             p="xl"
             radius="xl"
             shadow="sm"
-            style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+            style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
           >
             <Stack align="center" gap="sm" py="lg">
               <Title order={4}>Товары не найдены</Title>
@@ -178,7 +178,7 @@ export function SellerProductPreview({ sellerId }: SellerProductPreviewProps) {
                 padding="lg"
                 radius="xl"
                 shadow="sm"
-                style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+                style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
               >
                 <Group align="start" wrap="nowrap" gap="lg">
                   <Image

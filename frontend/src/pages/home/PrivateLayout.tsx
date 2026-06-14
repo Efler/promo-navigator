@@ -45,8 +45,8 @@ export function PrivateLayout() {
         component="header"
         bg="rgba(255, 255, 255, 0.98)"
         style={{
-          borderBottom: '1px solid rgba(174, 37, 115, 0.1)',
-          boxShadow: '0 10px 28px rgba(174, 37, 115, 0.08)',
+          borderBottom: '1px solid rgba(154, 65, 254, 0.1)',
+          boxShadow: '0 10px 28px rgba(154, 65, 254, 0.08)',
         }}
       >
         <TopAccent />
@@ -64,7 +64,7 @@ export function PrivateLayout() {
                 radius="xl"
                 p="xs"
                 shadow="sm"
-                style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+                style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
               >
                 <Group gap="sm" wrap="nowrap">
                   <UnstyledButton
@@ -110,7 +110,7 @@ export function PrivateLayout() {
                 >
                   {mechanic.label}
                   {mechanic.isBeta ? (
-                    <Text span size="xs" c="brand.7">
+                    <Text span size="xs" c="beta.4">
                       Beta
                     </Text>
                   ) : null}

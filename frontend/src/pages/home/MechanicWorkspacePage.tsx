@@ -18,9 +18,9 @@ export function MechanicWorkspacePage({
         radius="xl"
         shadow="md"
         style={{
-          border: '1px solid rgba(174, 37, 115, 0.1)',
+          border: '1px solid rgba(154, 65, 254, 0.1)',
           background:
-            'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(250,242,247,0.93))',
+            'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(244,239,252,0.96))',
         }}
       >
         <Group justify="space-between" align="start" gap="lg">
@@ -50,9 +50,9 @@ export function MechanicWorkspacePage({
         radius="xl"
         shadow="sm"
         style={{
-          border: '1px dashed rgba(174, 37, 115, 0.38)',
+          border: '1px dashed rgba(154, 65, 254, 0.34)',
           background:
-            'linear-gradient(180deg, rgba(253,247,250,1) 0%, rgba(255,255,255,1) 100%)',
+            'linear-gradient(180deg, rgba(247,247,250,1) 0%, rgba(255,255,255,1) 100%)',
         }}
       >
         <Stack align="center" gap="lg" py={{ base: 'md', md: 'lg' }}>

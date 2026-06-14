@@ -1,8 +1,8 @@
 :root {
   color: #111111;
   background:
-    radial-gradient(circle at top left, rgba(174, 37, 115, 0.11), transparent 28%),
-    linear-gradient(180deg, #fcf4f8 0%, #fbf9fb 18%, #ffffff 100%);
+    radial-gradient(circle at top left, rgba(154, 65, 254, 0.1), transparent 28%),
+    linear-gradient(180deg, #f7f7fa 0%, #f7f7fa 22%, #ffffff 100%);
   font-family: "Aptos", "Segoe UI Variable", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -34,9 +34,9 @@ body {
 .mantine-DatePickerInput-input::placeholder,
 .mantine-PillsInput-input::placeholder,
 .mantine-Input-input[data-placeholder] {
-  color: #645b67;
+  color: #5f5f6d;
   opacity: 1;
-  font-weight: 500;
+  font-weight: 550;
 }
 
 .mantine-InputWrapper-description,
@@ -49,22 +49,22 @@ body {
 
 .mantine-InputWrapper-description,
 .mantine-Text-root[data-size="sm"] {
-  color: #534a56;
+  color: #51515f;
   font-weight: 550;
 }
 
 .mantine-Text-root[data-size="xs"] {
-  color: #605864;
+  color: #5d5d69;
   font-weight: 550;
 }
 
 .mantine-InputWrapper-label {
-  color: #251f29;
+  color: #202027;
   font-weight: 600;
 }
 
 .mantine-InputWrapper-error {
-  color: #c43d66;
+  color: #c0436c;
   font-weight: 600;
 }
 
@@ -76,9 +76,9 @@ a {
 .auth-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 20% 20%, rgba(174, 37, 115, 0.17), transparent 24%),
-    radial-gradient(circle at 80% 0%, rgba(146, 28, 95, 0.12), transparent 20%),
-    linear-gradient(180deg, #faf0f6 0%, #fcf9fb 28%, #ffffff 100%);
+    radial-gradient(circle at 20% 20%, rgba(154, 65, 254, 0.15), transparent 24%),
+    radial-gradient(circle at 80% 0%, rgba(188, 162, 234, 0.18), transparent 20%),
+    linear-gradient(180deg, #f7f7fa 0%, #f7f7fa 28%, #ffffff 100%);
 }
 
 .mechanic-link {
@@ -87,7 +87,7 @@ a {
   gap: 8px;
   border-radius: 999px;
   padding: 10px 16px;
-  color: #5f5760;
+  color: #51515f;
   font-size: 14px;
   font-weight: 600;
   transition:
@@ -97,12 +97,12 @@ a {
 }
 
 .mechanic-link:hover {
-  background-color: rgba(174, 37, 115, 0.08);
+  background-color: rgba(154, 65, 254, 0.08);
   color: #111111;
   transform: translateY(-1px);
 }
 
 .mechanic-link--active {
-  background: rgba(174, 37, 115, 0.14);
-  color: #7f1f56;
+  background: rgba(154, 65, 254, 0.14);
+  color: #6d24b7;
 }

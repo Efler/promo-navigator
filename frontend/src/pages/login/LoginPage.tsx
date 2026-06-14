@@ -66,7 +66,7 @@ export function LoginPage() {
 
   return (
     <Box className="auth-page">
-      <Box h={28} bg="#AE2573" />
+      <Box h={28} bg="#9A41FE" />
 
       <Container size={1180} py={{ base: 40, md: 72 }}>
         <Group align="stretch" gap="xl">
@@ -76,7 +76,7 @@ export function LoginPage() {
             p={{ base: 'xl', md: 44 }}
             shadow="md"
             style={{
-              border: '1px solid rgba(174, 37, 115, 0.1)',
+              border: '1px solid rgba(154, 65, 254, 0.1)',
               background: 'rgba(255, 255, 255, 0.88)',
               backdropFilter: 'blur(16px)',
             }}
@@ -124,14 +124,14 @@ export function LoginPage() {
             p={{ base: 'xl', md: 36 }}
             shadow="md"
             style={{
-              border: '1px solid rgba(174, 37, 115, 0.1)',
+              border: '1px solid rgba(154, 65, 254, 0.1)',
               background:
-                'linear-gradient(180deg, rgba(255,255,255,0.97), rgba(250,242,247,0.96))',
+                'linear-gradient(180deg, rgba(255,255,255,0.97), rgba(244,239,252,0.96))',
             }}
           >
             <Stack gap="lg">
               <Group gap="sm">
-                <IconUserCircle size={28} color="#AE2573" />
+                <IconUserCircle size={28} color="#9A41FE" />
                 <div>
                   <Title order={3}>Вход в кабинет</Title>
                   <Text size="sm" c="dimmed">

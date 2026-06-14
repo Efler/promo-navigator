@@ -13,9 +13,9 @@ export function SellerProfilePage() {
         radius="xl"
         shadow="md"
         style={{
-          border: '1px solid rgba(174, 37, 115, 0.1)',
+          border: '1px solid rgba(154, 65, 254, 0.1)',
           background:
-            'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(250,242,247,0.93))',
+            'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(244,239,252,0.96))',
         }}
       >
         <Group justify="space-between" align="start" gap="lg">
@@ -38,7 +38,7 @@ export function SellerProfilePage() {
             </Box>
           </Group>
 
-          <IconUserCircle size={34} color="#AE2573" />
+          <IconUserCircle size={34} color="#9A41FE" />
         </Group>
       </Paper>
 
@@ -46,7 +46,7 @@ export function SellerProfilePage() {
         p={{ base: 'lg', md: 'xl' }}
         radius="xl"
         shadow="sm"
-        style={{ border: '1px solid rgba(174, 37, 115, 0.1)' }}
+        style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
       >
         <Stack gap="lg">
           <Group justify="space-between" align="start" gap="md">

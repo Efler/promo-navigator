@@ -17,9 +17,9 @@ export function MechanicsOverviewPage() {
         shadow="md"
         p={{ base: 'lg', md: 'xl' }}
         style={{
-          border: '1px solid rgba(174, 37, 115, 0.1)',
+          border: '1px solid rgba(154, 65, 254, 0.1)',
           background:
-            'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(250,242,247,0.93))',
+            'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,239,252,0.96))',
         }}
       >
         <Stack gap="md">
@@ -49,7 +49,7 @@ export function MechanicsOverviewPage() {
                 padding="xl"
                 shadow="sm"
                 style={{
-                  border: '1px solid rgba(174, 37, 115, 0.1)',
+                  border: '1px solid rgba(154, 65, 254, 0.1)',
                   background: 'rgba(255, 255, 255, 0.96)',
                 }}
               >
@@ -61,7 +61,15 @@ export function MechanicsOverviewPage() {
                     <Group justify="space-between" mt="lg" align="start">
                       <Title order={3}>{mechanic.label}</Title>
                       {mechanic.isBeta ? (
-                        <Badge variant="dot" color="brand">
+                        <Badge
+                          variant="light"
+                          styles={{
+                            root: {
+                              backgroundColor: 'rgba(142, 191, 237, 0.22)',
+                              color: '#4d7294',
+                            },
+                          }}
+                        >
                           Beta
                         </Badge>
                       ) : null}
