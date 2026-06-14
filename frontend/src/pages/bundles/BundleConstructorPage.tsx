@@ -23,15 +23,18 @@ import {
 import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { IconCheck, IconGift, IconInfoCircle, IconSparkles } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import productPlaceholder from '../../assets/product-placeholder.png'
 import { useAuth } from '../../features/auth/use-auth'
+import { ApiError } from '../../shared/api/client'
 import type {
   BundleAudienceType,
   BundleBenefitType,
   BundleProductScope,
 } from '../../features/bundles/api'
+import { createBundle } from '../../features/bundles/api'
 import {
   formatProductMoney,
   type SellerProductPreviewItem,
@@ -317,9 +320,39 @@ function formatMoneyFromInput(value: string) {
   }).format(Number(value))
 }
 
+function serializeDateForApi(value: Date) {
+  return dayjs(value).format('YYYY-MM-DD')
+}
+
+function getApiErrorDetail(error: unknown) {
+  if (!(error instanceof ApiError) || typeof error.data !== 'object' || error.data === null) {
+    return null
+  }
+
+  const detail = 'detail' in error.data ? (error.data as { detail?: unknown }).detail : null
+  return detail ?? null
+}
+
+function getApiErrorMessage(detail: unknown) {
+  if (typeof detail === 'string') {
+    return detail
+  }
+
+  if (Array.isArray(detail)) {
+    const firstItem = detail[0]
+    if (typeof firstItem === 'object' && firstItem !== null && 'msg' in firstItem) {
+      const message = (firstItem as { msg?: unknown }).msg
+      return typeof message === 'string' ? message : null
+    }
+  }
+
+  return null
+}
+
 export function BundleConstructorPage() {
   const { seller } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const form = useForm<BundleFormValues>({
     initialValues: {
@@ -357,7 +390,10 @@ export function BundleConstructorPage() {
       buyQuantity: (value, values) =>
         values.benefitType === 'pair_discount'
           ? null
-          : validatePositiveInteger(value, 'Укажите количество товаров.'),
+          : validatePositiveInteger(value, 'Укажите количество товаров.') ??
+            (values.benefitType === 'step_discount' && Number(value) < 2
+              ? 'Для этой механики нужно минимум 2 товара.'
+              : null),
       giftQuantity: (value, values) =>
         values.benefitType === 'gift_item'
           ? validatePositiveInteger(value, 'Укажите количество подарков.')
@@ -425,6 +461,10 @@ export function BundleConstructorPage() {
   const productsQuery = useSellerProductPreviewQuery({
     sellerId: seller?.id ?? null,
     enabled: form.values.productScope === 'selected' || form.values.benefitType === 'pair_discount',
+  })
+
+  const createBundleMutation = useMutation({
+    mutationFn: createBundle,
   })
 
   useEffect(() => {
@@ -496,7 +536,7 @@ export function BundleConstructorPage() {
     return `Скидка ${form.values.pairDiscountPercent || 'N'}% при покупке пары товар X + товар Y`
   }
 
-  function handleSubmit(values: BundleFormValues) {
+  async function handleSubmit(values: BundleFormValues) {
     const result = form.validate()
 
     if (result.hasErrors) {
@@ -508,12 +548,72 @@ export function BundleConstructorPage() {
       return
     }
 
-    notifications.show({
-      color: 'brand',
-      title: 'Комплект настроен',
-      message: `Настройки "${values.title.trim()}" готовы к запуску.`,
-    })
-    navigate('/app/bundles')
+    try {
+      const response = await createBundleMutation.mutateAsync({
+        title: values.title.trim(),
+        starts_on: serializeDateForApi(values.dateRange[0] as Date),
+        ends_on: serializeDateForApi(values.dateRange[1] as Date),
+        benefit_type: values.benefitType,
+        audience_type: values.audience,
+        product_scope: values.benefitType === 'pair_discount' ? 'pair' : values.productScope,
+        selected_product_ids:
+          values.benefitType !== 'pair_discount' && values.productScope === 'selected'
+            ? values.selectedProductIds
+            : [],
+        buy_quantity:
+          values.benefitType === 'pair_discount' ? null : Number(values.buyQuantity),
+        gift_quantity:
+          values.benefitType === 'gift_item' ? Number(values.giftQuantity) : null,
+        order_discount_percent:
+          values.benefitType === 'order_discount' ? Number(values.discountPercent) : null,
+        fixed_price:
+          values.benefitType === 'fixed_price' ? Number(values.fixedPrice) : null,
+        step_start_position:
+          values.benefitType === 'step_discount' ? Number(values.stepStartPosition) : null,
+        step_discount_percent:
+          values.benefitType === 'step_discount' ? Number(values.stepDiscountPercent) : null,
+        pair_discount_percent:
+          values.benefitType === 'pair_discount' ? Number(values.pairDiscountPercent) : null,
+        pair_product_x_id:
+          values.benefitType === 'pair_discount' ? Number(values.pairProductXId) : null,
+        pair_product_y_id:
+          values.benefitType === 'pair_discount' ? Number(values.pairProductYId) : null,
+      })
+
+      form.reset()
+      queryClient.invalidateQueries({ queryKey: ['bundles'] })
+      notifications.show({
+        color: 'brand',
+        title: 'Комплект создан',
+        message: `Комплект "${response.bundle.title}" успешно создан.`,
+      })
+      navigate('/app/bundles')
+    } catch (error) {
+      const detail = getApiErrorDetail(error)
+      const detailMessage = getApiErrorMessage(detail)
+
+      if (typeof detailMessage === 'string') {
+        if (detailMessage.includes('selected products') || detailMessage.includes('pair products')) {
+          form.setFieldError(
+            values.benefitType === 'pair_discount' ? 'pairProductXId' : 'selectedProductIds',
+            'Проверьте список товаров: часть выбранных позиций больше недоступна.',
+          )
+        }
+
+        if (detailMessage.includes('start date')) {
+          form.setFieldError('dateRange', detailMessage)
+        }
+      }
+
+      notifications.show({
+        color: 'red',
+        title: 'Не удалось создать комплект',
+        message:
+          typeof detailMessage === 'string'
+            ? detailMessage
+            : 'Проверьте настройки комплекта и попробуйте снова.',
+      })
+    }
   }
 
   return (
@@ -1042,6 +1142,7 @@ export function BundleConstructorPage() {
                 justifyContent: 'center',
               },
             }}
+            loading={createBundleMutation.isPending}
           >
             + Создать комплект
           </Button>

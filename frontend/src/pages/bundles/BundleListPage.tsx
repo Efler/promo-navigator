@@ -16,7 +16,7 @@ import {
 import { IconGift, IconPlus } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import { useBundlesQuery } from '../../features/bundles/use-bundles'
-import type { BundleBenefitType } from '../../features/bundles/api'
+import type { BundleAudienceType, BundleBenefitType, BundleListItem } from '../../features/bundles/api'
 
 const benefitTypeLabels: Record<BundleBenefitType, string> = {
   gift_item: 'Подарок за набор',
@@ -24,6 +24,12 @@ const benefitTypeLabels: Record<BundleBenefitType, string> = {
   fixed_price: 'Фиксированная цена',
   step_discount: 'Скидка на следующий товар',
   pair_discount: 'Скидка на пару товаров',
+}
+
+const audienceLabels: Record<BundleAudienceType, string> = {
+  all: 'Все покупатели',
+  bought_last_half_year: 'Покупали за полгода',
+  not_bought_last_half_year: 'Не покупали за полгода',
 }
 
 function formatPeriod(startsOn: string, endsOn: string) {
@@ -54,10 +60,27 @@ function getStatusColor(status: 'active' | 'expired' | 'planned') {
   return 'gray'
 }
 
+function getProductScopeLabel(bundle: BundleListItem) {
+  if (bundle.product_scope === 'all') {
+    return 'Все товары'
+  }
+
+  if (bundle.product_scope === 'pair') {
+    const pairProducts = bundle.products
+      .filter((product) => product.role === 'pair_x' || product.role === 'pair_y')
+      .sort((left, right) => left.role.localeCompare(right.role))
+      .map((product) => product.title)
+
+    return pairProducts.length === 2 ? pairProducts.join(' + ') : 'Пара товаров'
+  }
+
+  return `${bundle.selected_product_ids.length} выбрано`
+}
+
 export function BundleListPage() {
   const navigate = useNavigate()
   const bundlesQuery = useBundlesQuery()
-  const bundles = bundlesQuery.data?.items ?? []
+  const bundles = bundlesQuery.data ?? []
 
   return (
     <Stack gap="xl">
@@ -171,6 +194,7 @@ export function BundleListPage() {
                     <Table.Th>Механика</Table.Th>
                     <Table.Th>Сроки</Table.Th>
                     <Table.Th>Товары</Table.Th>
+                    <Table.Th>Аудитория</Table.Th>
                     <Table.Th>Статус</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
@@ -192,11 +216,10 @@ export function BundleListPage() {
                         <Text>{formatPeriod(bundle.starts_on, bundle.ends_on)}</Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text>
-                          {bundle.product_scope === 'all'
-                            ? 'Все товары'
-                            : `${bundle.selected_product_ids.length} выбрано`}
-                        </Text>
+                        <Text lineClamp={2}>{getProductScopeLabel(bundle)}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text>{audienceLabels[bundle.audience_type]}</Text>
                       </Table.Td>
                       <Table.Td>
                         <Badge
