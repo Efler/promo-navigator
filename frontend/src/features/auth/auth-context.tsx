@@ -31,15 +31,16 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-async function fetchCurrentSeller() {
+async function fetchCurrentSeller({ signal }: { signal?: AbortSignal } = {}) {
   try {
-    const response = await apiRequest<AuthResponse>('/auth/me')
+    const response = await apiRequest<AuthResponse>('/auth/me', { signal })
     return response.seller
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       try {
         const refreshed = await apiRequest<AuthResponse>('/auth/refresh', {
           method: 'POST',
+          signal,
         })
 
         return refreshed.seller
@@ -66,14 +67,24 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const loginMutation = useMutation({
     mutationFn: async (payload: LoginPayload) => {
-      const response = await apiRequest<AuthResponse>('/auth/login', {
+      await queryClient.cancelQueries({ queryKey: ['auth', 'me'] })
+
+      await apiRequest<AuthResponse>('/auth/login', {
         method: 'POST',
         body: payload,
       })
 
-      return response.seller
+      const confirmedSeller = await fetchCurrentSeller()
+      if (!confirmedSeller) {
+        throw new Error(
+          'Backend accepted login, but browser did not keep the seller session cookies.',
+        )
+      }
+
+      return confirmedSeller
     },
-    onSuccess: (seller) => {
+    onSuccess: async (seller) => {
+      await queryClient.cancelQueries({ queryKey: ['auth', 'me'] })
       queryClient.removeQueries({ queryKey: ['seller-product-preview'] })
       queryClient.setQueryData(['auth', 'me'], seller)
     },

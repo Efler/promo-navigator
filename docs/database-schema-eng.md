@@ -7,6 +7,8 @@
 - `product_items`
 - `promocodes`
 - `promocode_products`
+- `bundles`
+- `bundle_products`
 - `refresh_sessions`
 
 ## Entity Overview
@@ -30,6 +32,14 @@ Seller-owned promocode campaign configuration.
 ### `promocode_products`
 
 Product selection mapping for promocodes when the scope is limited to selected products.
+
+### `bundles`
+
+Seller-owned bundle campaign configuration for multi-product mechanics.
+
+### `bundle_products`
+
+Product selection mapping for bundles, including regular eligible products and pair-specific product roles.
 
 ### `refresh_sessions`
 
@@ -219,6 +229,152 @@ create table promocode_products (
 create index ix_promocode_products_product_id on promocode_products (product_id);
 
 
+create table bundles (
+    id bigserial primary key,
+    seller_id bigint not null,
+    title varchar(60) not null,
+    starts_on date not null,
+    ends_on date not null,
+    benefit_type varchar(32) not null,
+    audience_type varchar(40) not null,
+    product_scope varchar(16) not null,
+    buy_quantity integer,
+    gift_quantity integer,
+    order_discount_percent smallint,
+    fixed_price numeric(12, 2),
+    step_start_position integer,
+    step_discount_percent smallint,
+    pair_discount_percent smallint,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
+    constraint fk_bundles_seller_id
+        foreign key (seller_id)
+        references sellers(id)
+        on delete cascade,
+    constraint chk_bundles_title_not_blank check (length(btrim(title)) > 0),
+    constraint chk_bundles_dates_order check (ends_on >= starts_on),
+    constraint chk_bundles_benefit_type check (
+        benefit_type in (
+            'gift_item',
+            'order_discount',
+            'fixed_price',
+            'step_discount',
+            'pair_discount'
+        )
+    ),
+    constraint chk_bundles_audience_type check (
+        audience_type in (
+            'all',
+            'bought_last_half_year',
+            'not_bought_last_half_year'
+        )
+    ),
+    constraint chk_bundles_product_scope check (
+        product_scope in ('all', 'selected', 'pair')
+    ),
+    constraint chk_bundles_product_scope_matches_benefit check (
+        (benefit_type = 'pair_discount' and product_scope = 'pair')
+        or
+        (benefit_type <> 'pair_discount' and product_scope in ('all', 'selected'))
+    ),
+    constraint chk_bundles_benefit_params check (
+        (
+            benefit_type = 'gift_item'
+            and buy_quantity >= 1
+            and gift_quantity >= 1
+            and order_discount_percent is null
+            and fixed_price is null
+            and step_start_position is null
+            and step_discount_percent is null
+            and pair_discount_percent is null
+        )
+        or
+        (
+            benefit_type = 'order_discount'
+            and buy_quantity >= 1
+            and order_discount_percent between 1 and 99
+            and gift_quantity is null
+            and fixed_price is null
+            and step_start_position is null
+            and step_discount_percent is null
+            and pair_discount_percent is null
+        )
+        or
+        (
+            benefit_type = 'fixed_price'
+            and buy_quantity >= 1
+            and fixed_price > 0
+            and gift_quantity is null
+            and order_discount_percent is null
+            and step_start_position is null
+            and step_discount_percent is null
+            and pair_discount_percent is null
+        )
+        or
+        (
+            benefit_type = 'step_discount'
+            and buy_quantity >= 2
+            and step_start_position between 2 and buy_quantity
+            and step_discount_percent between 1 and 99
+            and gift_quantity is null
+            and order_discount_percent is null
+            and fixed_price is null
+            and pair_discount_percent is null
+        )
+        or
+        (
+            benefit_type = 'pair_discount'
+            and pair_discount_percent between 1 and 99
+            and buy_quantity is null
+            and gift_quantity is null
+            and order_discount_percent is null
+            and fixed_price is null
+            and step_start_position is null
+            and step_discount_percent is null
+        )
+    )
+);
+
+create index ix_bundles_seller_id on bundles (seller_id);
+create index ix_bundles_starts_on on bundles (starts_on);
+create index ix_bundles_ends_on on bundles (ends_on);
+create index ix_bundles_benefit_type on bundles (benefit_type);
+create index ix_bundles_audience_type on bundles (audience_type);
+create index ix_bundles_product_scope on bundles (product_scope);
+
+
+create table bundle_products (
+    bundle_id bigint not null,
+    product_id bigint not null,
+    role varchar(16) not null,
+    created_at timestamptz not null default now(),
+
+    constraint pk_bundle_products
+        primary key (bundle_id, product_id),
+    constraint fk_bundle_products_bundle_id
+        foreign key (bundle_id)
+        references bundles(id)
+        on delete cascade,
+    constraint fk_bundle_products_product_id
+        foreign key (product_id)
+        references products(id)
+        on delete cascade,
+    constraint chk_bundle_products_role check (
+        role in ('eligible', 'pair_x', 'pair_y')
+    )
+);
+
+create index ix_bundle_products_product_id on bundle_products (product_id);
+create index ix_bundle_products_role on bundle_products (role);
+create unique index uq_bundle_products_pair_x
+    on bundle_products (bundle_id)
+    where role = 'pair_x';
+create unique index uq_bundle_products_pair_y
+    on bundle_products (bundle_id)
+    where role = 'pair_y';
+
+
 create table refresh_sessions (
     id uuid primary key,
     seller_id bigint not null,
@@ -329,6 +485,37 @@ create index ix_refresh_sessions_revoked_at on refresh_sessions (revoked_at);
 | `product_id` | `bigint` | Linked product. References `products.id`. |
 | `created_at` | `timestamptz` | When this product was linked to the promocode. |
 
+### `bundles`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `id` | `bigserial` | Internal bundle identifier. |
+| `seller_id` | `bigint` | Owner seller. References `sellers.id`. |
+| `title` | `varchar(60)` | Internal bundle title visible to the seller. |
+| `starts_on` | `date` | Bundle start date. |
+| `ends_on` | `date` | Bundle end date. |
+| `benefit_type` | `varchar(32)` | Benefit mechanic selected in the constructor UI. |
+| `audience_type` | `varchar(40)` | Audience segment selected in the constructor UI. |
+| `product_scope` | `varchar(16)` | Product selection mode: all products, selected products, or a fixed pair. |
+| `buy_quantity` | `integer` | Required item quantity for quantity-based bundle mechanics. |
+| `gift_quantity` | `integer` | Gift item quantity for the gift mechanic. |
+| `order_discount_percent` | `smallint` | Percent discount for the full bundle amount. |
+| `fixed_price` | `numeric(12,2)` | Fixed final bundle price. |
+| `step_start_position` | `integer` | Item position from which step discount starts. |
+| `step_discount_percent` | `smallint` | Percent discount for discounted item positions in the step mechanic. |
+| `pair_discount_percent` | `smallint` | Percent discount for the fixed product pair mechanic. |
+| `created_at` | `timestamptz` | Row creation timestamp. |
+| `updated_at` | `timestamptz` | Row update timestamp. |
+
+### `bundle_products`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `bundle_id` | `bigint` | Linked bundle. References `bundles.id`. |
+| `product_id` | `bigint` | Linked product. References `products.id`. |
+| `role` | `varchar(16)` | Product role in the bundle: eligible, pair_x, or pair_y. |
+| `created_at` | `timestamptz` | When this product was linked to the bundle. |
+
 ### `refresh_sessions`
 
 | Field | Type | Meaning |
@@ -349,6 +536,9 @@ create index ix_refresh_sessions_revoked_at on refresh_sessions (revoked_at);
 - One `seller` -> many `promocodes`
 - One `promocode` -> many `promocode_products`
 - One `product` -> many `promocode_products`
+- One `seller` -> many `bundles`
+- One `bundle` -> many `bundle_products`
+- One `product` -> many `bundle_products`
 - One `seller` -> many `refresh_sessions`
 
 ## Implementation Notes
@@ -356,6 +546,10 @@ create index ix_refresh_sessions_revoked_at on refresh_sessions (revoked_at);
 - `updated_at` should be maintained by the application or SQLAlchemy layer.
 - `promocode_products` should stay empty when `promocodes.product_scope = 'all'`.
 - `promocode_products` should contain at least one row when `promocodes.product_scope = 'selected'`.
+- `bundle_products` should stay empty when `bundles.product_scope = 'all'`.
+- `bundle_products` should contain at least one row with `role = 'eligible'` when `bundles.product_scope = 'selected'`.
+- `bundle_products` should contain exactly one `pair_x` row and exactly one `pair_y` row when `bundles.product_scope = 'pair'`.
+- Bundle product ownership should be validated in application logic so selected products belong to the bundle seller.
 - Validation for "start date is not earlier than tomorrow and not later than three months from creation" should be enforced in application logic.
 - `refresh_token_hash` should be compared by hashing the incoming refresh token value, not by storing raw token text.
 - Access tokens can stay short-lived JWTs in `httpOnly` cookies.

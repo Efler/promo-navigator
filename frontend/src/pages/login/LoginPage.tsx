@@ -54,6 +54,8 @@ export function LoginPage() {
         if (detail) {
           message = detail
         }
+      } else if (error instanceof Error) {
+        message = error.message
       }
 
       notifications.show({
