@@ -1,21 +1,39 @@
 import {
+  ActionIcon,
   Avatar,
   Box,
-  Button,
   Container,
   Group,
-  Paper,
+  Menu,
   Stack,
   Text,
   Title,
+  Tooltip,
   UnstyledButton,
 } from '@mantine/core'
-import { IconLogout2 } from '@tabler/icons-react'
+import {
+  IconBell,
+  IconChevronDown,
+  IconHelpCircle,
+  IconLogout2,
+  IconMessageCircle,
+  IconSearch,
+  IconUserCircle,
+} from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/use-auth'
 import { TopAccent } from '../../shared/ui/TopAccent'
 import { mechanics } from './mechanics'
+
+const marketplaceSections = [
+  'Рост продаж',
+  'Товары и цены',
+  'Поставки и заказы',
+  'Аналитика',
+  'Продвижение',
+  'Финансы',
+]
 
 export function PrivateLayout() {
   const { seller, logout } = useAuth()
@@ -50,53 +68,130 @@ export function PrivateLayout() {
         }}
       >
         <TopAccent />
-        <Container size="xl" py="lg">
-          <Stack gap="md">
-            <Group justify="space-between" align="start" gap="lg">
-              <div>
-                <Title order={2}>Промо-навигатор</Title>
-                <Text c="dimmed" mt={6}>
-                  Управление механиками продвижения для продавцов
-                </Text>
-              </div>
 
-              <Paper
-                radius="xl"
-                p="xs"
-                shadow="sm"
-                style={{ border: '1px solid rgba(154, 65, 254, 0.1)' }}
+        <Box className="marketplace-header">
+          <Container size="xl" h="100%">
+            <Group h="100%" gap="lg" wrap="nowrap">
+              <UnstyledButton
+                className="marketplace-logo"
+                type="button"
+                aria-label="WB Partners"
               >
-                <Group gap="sm" wrap="nowrap">
+                <Text span className="marketplace-logo__wb">
+                  wb
+                </Text>{' '}
+                partners
+              </UnstyledButton>
+
+              <Group className="marketplace-nav" gap={4} wrap="nowrap">
+                {marketplaceSections.map((section) => (
                   <UnstyledButton
-                    onClick={() => navigate('/app/profile')}
-                    style={{ borderRadius: '999px', padding: '2px 6px' }}
+                    key={section}
+                    type="button"
+                    className="marketplace-nav__item"
                   >
-                    <Group gap="sm" wrap="nowrap">
-                      <Avatar color="brand" radius="xl">
+                    {section}
+                  </UnstyledButton>
+                ))}
+              </Group>
+
+              <Group className="marketplace-actions" gap={6} wrap="nowrap">
+                <Tooltip label="Поиск">
+                  <ActionIcon
+                    type="button"
+                    size={34}
+                    radius="md"
+                    variant="filled"
+                    color="dark"
+                    aria-label="Поиск"
+                  >
+                    <IconSearch size={16} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip label="Сообщения">
+                  <ActionIcon
+                    type="button"
+                    size={34}
+                    radius="md"
+                    variant="subtle"
+                    color="dark"
+                    aria-label="Сообщения"
+                  >
+                    <IconMessageCircle size={17} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip label="Уведомления">
+                  <ActionIcon
+                    type="button"
+                    size={34}
+                    radius="md"
+                    variant="subtle"
+                    color="dark"
+                    aria-label="Уведомления"
+                  >
+                    <IconBell size={17} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip label="Помощь">
+                  <ActionIcon
+                    type="button"
+                    size={34}
+                    radius="md"
+                    variant="subtle"
+                    color="dark"
+                    aria-label="Помощь"
+                  >
+                    <IconHelpCircle size={17} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Menu position="bottom-end" shadow="md" width={210}>
+                  <Menu.Target>
+                    <UnstyledButton type="button" className="marketplace-profile">
+                      <Avatar color="brand" radius="xl" size={26}>
                         {seller?.display_name?.slice(0, 1).toUpperCase() ?? 'S'}
                       </Avatar>
-                      <div>
-                        <Text fw={700} size="sm">
-                          {seller?.display_name}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          Личный кабинет
-                        </Text>
-                      </div>
-                    </Group>
-                  </UnstyledButton>
-                  <Button
-                    variant="subtle"
-                    color="brand"
-                    size="compact-sm"
-                    onClick={handleLogout}
-                    leftSection={<IconLogout2 size={16} />}
-                  >
-                    Выйти
-                  </Button>
-                </Group>
-              </Paper>
+                      <Text fw={650} size="sm" className="marketplace-profile__name">
+                        {seller?.display_name}
+                      </Text>
+                      <IconChevronDown size={15} />
+                    </UnstyledButton>
+                  </Menu.Target>
+
+                  <Menu.Dropdown>
+                    <Menu.Label>Аккаунт продавца</Menu.Label>
+                    <Menu.Item
+                      leftSection={<IconUserCircle size={16} />}
+                      onClick={() => navigate('/app/profile')}
+                    >
+                      Личный кабинет
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item
+                      color="red"
+                      leftSection={<IconLogout2 size={16} />}
+                      onClick={handleLogout}
+                    >
+                      Выйти
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
             </Group>
+          </Container>
+        </Box>
+
+        <Container size="xl" py="lg">
+          <Stack gap="md">
+            <div>
+              <Title order={2}>Промо-навигатор</Title>
+              <Text c="dimmed" mt={6}>
+                Управление механиками продвижения для продавцов
+              </Text>
+            </div>
 
             <Group gap="xs" wrap="wrap">
               {mechanics.map((mechanic) => (
