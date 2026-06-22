@@ -37,12 +37,62 @@ services:
     networks:
       - promo-constructor-network
 
+  pc_ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.30.10}
+    container_name: pc_ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_CONTEXT_LENGTH: "${OLLAMA_CONTEXT_LENGTH:-1792}"
+      OLLAMA_KEEP_ALIVE: "${OLLAMA_KEEP_ALIVE:-10m}"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_QUEUE: "${OLLAMA_MAX_QUEUE:-8}"
+      OLLAMA_FLASH_ATTENTION: "1"
+      OLLAMA_KV_CACHE_TYPE: "q8_0"
+    volumes:
+      - pc_ollama_data:/root/.ollama
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "OLLAMA_HOST=127.0.0.1:11434 ollama list >/dev/null 2>&1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    cpus: "${OLLAMA_CPUS:-3.0}"
+    mem_limit: "${OLLAMA_MEMORY_LIMIT:-2304m}"
+    stop_grace_period: 30s
+    networks:
+      - promo-constructor-network
+
+  pc_ollama_model_init:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.30.10}
+    profiles:
+      - ollama-init
+    depends_on:
+      pc_ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: "http://pc_ollama:11434"
+    entrypoint: ["ollama"]
+    command: ["pull", "${OLLAMA_MODEL:-qwen3:1.7b}"]
+    volumes:
+      - pc_ollama_data:/root/.ollama
+    networks:
+      - promo-constructor-network
+
   pc_backend:
     image: ${BACKEND_IMAGE:-promo-constructor-backend:latest}
     container_name: pc_backend
     restart: unless-stopped
     depends_on:
       pc_postgres:
+        condition: service_healthy
+      pc_ollama:
         condition: service_healthy
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
@@ -64,6 +114,17 @@ services:
       API_ADMIN_PROTECTION_ENABLED: "${API_ADMIN_PROTECTION_ENABLED:-true}"
       API_ADMIN_KEY: "${API_ADMIN_KEY:-}"
       FRONTEND_INTERNAL_API_KEY: "${FRONTEND_INTERNAL_API_KEY:-}"
+      OLLAMA_BASE_URL: "http://pc_ollama:11434"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-qwen3:1.7b}"
+      OLLAMA_CONNECT_TIMEOUT_SECONDS: "${OLLAMA_CONNECT_TIMEOUT_SECONDS:-3}"
+      OLLAMA_READ_TIMEOUT_SECONDS: "${OLLAMA_READ_TIMEOUT_SECONDS:-120}"
+      OLLAMA_QUEUE_WAIT_TIMEOUT_SECONDS: "${OLLAMA_QUEUE_WAIT_TIMEOUT_SECONDS:-5}"
+      OLLAMA_KEEP_ALIVE: "${OLLAMA_KEEP_ALIVE:-10m}"
+      OLLAMA_NUM_CTX: "${OLLAMA_CONTEXT_LENGTH:-1792}"
+      OLLAMA_NUM_PREDICT: "${OLLAMA_NUM_PREDICT:-112}"
+      OLLAMA_TEMPERATURE: "0"
+      OLLAMA_SEED: "${OLLAMA_SEED:-42}"
+      OLLAMA_USER_MESSAGE_MAX_CHARS: "${OLLAMA_USER_MESSAGE_MAX_CHARS:-2600}"
     healthcheck:
       test:
         [
@@ -114,6 +175,7 @@ networks:
 volumes:
   pc_postgres_data:
   pc_pgadmin_data:
+  pc_ollama_data:
   letsencrypt_etc:
   letsencrypt_var:
   certbot_webroot:

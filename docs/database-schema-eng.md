@@ -1,5 +1,7 @@
 # Promo Navigator Database Schema
 
+Verified against Alembic revision `20260621_0004` and the current SQLAlchemy models.
+
 ## Tables
 
 - `sellers`
@@ -787,6 +789,7 @@ create index ix_refresh_sessions_revoked_at on refresh_sessions (revoked_at);
 - Promotion joining should validate publication state, join deadline, minimum additional discount, minimum product count, product ownership, active stock, and eligible parent categories in application logic.
 - Every product selected for a participation must belong to the participation seller.
 - The additional promotion discount is applied to the current item price and should be calculated per active `product_item`.
-- Validation for "start date is not earlier than tomorrow and not later than three months from creation" should be enforced in application logic.
+- Promocode start date is validated in application logic: not earlier than the next business day and not later than three calendar months from today.
+- Bundle start date is validated in application logic: not earlier than the next business day.
 - `refresh_token_hash` should be compared by hashing the incoming refresh token value, not by storing raw token text.
 - Access tokens can stay short-lived JWTs in `httpOnly` cookies.

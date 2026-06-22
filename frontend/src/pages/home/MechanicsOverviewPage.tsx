@@ -1,11 +1,14 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import {
+  Alert,
   Badge,
   Box,
   Button,
   Card,
   Group,
+  Loader,
   Paper,
+  Progress,
   SimpleGrid,
   Stack,
   Text,
@@ -15,22 +18,22 @@ import {
   Transition,
 } from '@mantine/core'
 import {
+  IconAlertCircle,
   IconArrowRight,
   IconChartBar,
+  IconClock,
   IconGift,
   IconMessageStar,
   IconSparkles,
   IconTicket,
 } from '@tabler/icons-react'
 import { Link } from 'react-router-dom'
+import { useRecommendation } from '../../features/recommendations/use-recommendation'
+import { ApiError } from '../../shared/api/client'
 import { mechanics } from './mechanics'
+import classes from './MechanicsOverviewPage.module.css'
 
 type MechanicKey = 'promotions' | 'promocodes' | 'bundles'
-
-type Recommendation = {
-  mechanicKey: MechanicKey
-  explanation: string
-}
 
 const iconMap = {
   promotions: IconChartBar,
@@ -44,96 +47,101 @@ const examplePrompts = [
   'Хочу вернуть покупателей',
 ]
 
-const recommendationExplanations: Record<MechanicKey, string> = {
-  promotions:
-    'Акция лучше всего подходит для заметного роста продаж и работы с широким ассортиментом. Она поможет привлечь больше внимания к товарам за счёт участия в общей кампании маркетплейса.',
-  promocodes:
-    'Промокод подойдёт для адресного предложения: его удобно использовать для возврата покупателей, ограниченной аудитории или отдельной рекламной коммуникации.',
-  bundles:
-    'Комплекты помогут связать несколько товаров в одно предложение, увеличить средний чек и стимулировать покупку дополнительных позиций.',
+function getRecommendationErrorMessage(error: Error | null) {
+  if (error instanceof ApiError) {
+    if (error.status === 503) {
+      return 'Сервис подбора сейчас занят или временно недоступен.'
+    }
+
+    if (error.status === 504) {
+      return 'Подбор не успел завершиться. Попробуйте отправить запрос ещё раз.'
+    }
+  }
+
+  return 'Не удалось получить рекомендацию. Можно повторить запрос или воспользоваться быстрым подбором.'
 }
 
-function getDemoRecommendation(request: string): Recommendation {
-  const normalizedRequest = request.toLocaleLowerCase('ru-RU')
-
-  if (
-    ['комплект', 'набор', 'средн', 'дополнительн', 'вместе', 'чек'].some((keyword) =>
-      normalizedRequest.includes(keyword),
-    )
-  ) {
-    return {
-      mechanicKey: 'bundles',
-      explanation: recommendationExplanations.bundles,
-    }
+function getLoadingStatus(elapsedSeconds: number) {
+  if (elapsedSeconds >= 60) {
+    return 'Формируем понятное обоснование выбора'
   }
 
-  if (
-    ['промокод', 'вернуть', 'повторн', 'постоянн', 'аудитори', 'лояльн'].some(
-      (keyword) => normalizedRequest.includes(keyword),
-    )
-  ) {
-    return {
-      mechanicKey: 'promocodes',
-      explanation: recommendationExplanations.promocodes,
-    }
+  if (elapsedSeconds >= 48) {
+    return 'Выбираем механику с наиболее подходящим сценарием'
   }
 
-  return {
-    mechanicKey: 'promotions',
-    explanation: recommendationExplanations.promotions,
+  if (elapsedSeconds >= 36) {
+    return 'Уточняем рекомендацию с учётом текущих возможностей'
   }
+
+  if (elapsedSeconds >= 24) {
+    return 'Сравниваем доступные способы продвижения'
+  }
+
+  if (elapsedSeconds >= 12) {
+    return 'Изучаем ассортимент и состояние товаров'
+  }
+
+  return 'Определяем ключевую цель продвижения'
 }
 
 export function MechanicsOverviewPage() {
-  const [request, setRequest] = useState('')
-  const [recommendation, setRecommendation] = useState<Recommendation | null>(null)
-  const [isRecommendationVisible, setIsRecommendationVisible] = useState(false)
-  const replacementTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [requestError, setRequestError] = useState<string | null>(null)
+  const [loadingElapsedSeconds, setLoadingElapsedSeconds] = useState(0)
+  const {
+    request,
+    recommendation,
+    isPending,
+    error,
+    startedAt,
+    setRequest,
+    runRecommendation,
+    clearResult,
+    useDemoFallback,
+  } = useRecommendation()
 
-  const recommendedMechanic = recommendation
+  const recommendedMechanic = recommendation?.mechanicKey
     ? mechanics.find((mechanic) => mechanic.key === recommendation.mechanicKey)
     : null
 
-  useEffect(
-    () => () => {
-      if (replacementTimeoutRef.current) {
-        clearTimeout(replacementTimeoutRef.current)
-      }
-    },
-    [],
-  )
+  useEffect(() => {
+    if (!isPending || startedAt === null) {
+      return
+    }
+
+    const updateElapsed = () => {
+      setLoadingElapsedSeconds(
+        Math.floor((Date.now() - startedAt) / 1000),
+      )
+    }
+
+    updateElapsed()
+    const interval = window.setInterval(() => {
+      updateElapsed()
+    }, 1000)
+
+    return () => window.clearInterval(interval)
+  }, [isPending, startedAt])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const preparedRequest = request.trim()
 
-    if (!preparedRequest) {
+    if (preparedRequest.length < 10) {
+      setRequestError('Опишите задачу чуть подробнее — минимум 10 символов.')
       return
     }
 
-    const nextRecommendation = getDemoRecommendation(preparedRequest)
-
-    if (replacementTimeoutRef.current) {
-      clearTimeout(replacementTimeoutRef.current)
-    }
-
-    if (isRecommendationVisible) {
-      setIsRecommendationVisible(false)
-      replacementTimeoutRef.current = setTimeout(() => {
-        setRecommendation(nextRecommendation)
-        setIsRecommendationVisible(true)
-      }, 260)
-      return
-    }
-
-    setRecommendation(nextRecommendation)
-    setIsRecommendationVisible(true)
+    setRequestError(null)
+    setLoadingElapsedSeconds(0)
+    runRecommendation(preparedRequest)
   }
 
   function handleExampleClick(example: string) {
     setRequest(example)
-    setIsRecommendationVisible(false)
+    setRequestError(null)
+    clearResult()
   }
 
   return (
@@ -143,9 +151,9 @@ export function MechanicsOverviewPage() {
         radius="xl"
         shadow="md"
         p={{ base: 'lg', sm: 32, md: 44 }}
-          style={{
-            position: 'relative',
-            overflow: 'hidden',
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
           border: '1px solid rgba(154, 65, 254, 0.13)',
           background:
             'radial-gradient(circle at 8% 12%, rgba(154, 65, 254, 0.14), transparent 28%), linear-gradient(145deg, rgba(255,255,255,0.99), rgba(246,241,253,0.98))',
@@ -204,8 +212,11 @@ export function MechanicsOverviewPage() {
                 value={request}
                 onChange={(event) => {
                   setRequest(event.currentTarget.value)
-                  setIsRecommendationVisible(false)
+                  setRequestError(null)
+                  clearResult()
                 }}
+                disabled={isPending}
+                error={requestError}
                 autosize
                 minRows={4}
                 maxRows={8}
@@ -253,6 +264,7 @@ export function MechanicsOverviewPage() {
                             whiteSpace: 'nowrap',
                           },
                         }}
+                        disabled={isPending}
                         onClick={() => handleExampleClick(example)}
                       >
                         {example}
@@ -266,10 +278,12 @@ export function MechanicsOverviewPage() {
                     type="submit"
                     radius="xl"
                     size="lg"
-                    disabled={!request.trim()}
+                    disabled={!request.trim() || isPending}
+                    loading={isPending}
+                    loaderProps={{ type: 'dots' }}
                     rightSection={<IconSparkles size={17} />}
                   >
-                    Подобрать механику
+                    {isPending ? 'Подбираем механику' : 'Подобрать механику'}
                   </Button>
                 </Group>
               </Stack>
@@ -277,15 +291,159 @@ export function MechanicsOverviewPage() {
           </Paper>
 
           <Transition
-            mounted={
-              isRecommendationVisible && Boolean(recommendation && recommendedMechanic)
-            }
+            mounted={isPending}
+            transition="slide-down"
+            duration={260}
+            timingFunction="ease"
+          >
+            {(transitionStyle) => (
+              <Paper
+                role="status"
+                aria-live="polite"
+                radius="xl"
+                p={{ base: 'lg', sm: 'xl' }}
+                className={classes.loadingCard}
+                style={{
+                  ...transitionStyle,
+                  border: '1px solid rgba(154, 65, 254, 0.18)',
+                  background:
+                    'linear-gradient(135deg, rgba(154, 65, 254, 0.11), rgba(255, 255, 255, 0.98) 72%)',
+                }}
+              >
+                <Stack gap="lg" pos="relative" style={{ zIndex: 1 }}>
+                  <Group gap="md" wrap="nowrap">
+                    <ThemeIcon
+                      size={52}
+                      radius="xl"
+                      color="brand"
+                      variant="light"
+                      className={classes.loadingIcon}
+                    >
+                      <Loader color="brand" size={25} type="dots" />
+                    </ThemeIcon>
+                    <div>
+                      <Text size="xs" tt="uppercase" fw={750} c="brand.7">
+                        Подбираем механику
+                      </Text>
+                      <Title order={3} mt={3}>
+                        {getLoadingStatus(loadingElapsedSeconds)}
+                      </Title>
+                    </div>
+                  </Group>
+
+                  <Progress
+                    value={100}
+                    size="sm"
+                    radius="xl"
+                    animated
+                    color="brand"
+                    aria-label="Подбор рекомендации выполняется"
+                  />
+
+                  <Group justify="space-between" gap="sm">
+                    <Group gap={7}>
+                      <IconClock
+                        size={16}
+                        color="var(--mantine-color-dimmed)"
+                      />
+                      <Text size="sm" c="dimmed">
+                        Прошло {loadingElapsedSeconds} сек.
+                      </Text>
+                    </Group>
+                    <Text size="sm" c="dimmed" ta="right">
+                      Подбор может занять некоторое время
+                    </Text>
+                  </Group>
+                </Stack>
+              </Paper>
+            )}
+          </Transition>
+
+          <Transition
+            mounted={Boolean(error)}
+            transition="slide-down"
+            duration={260}
+            timingFunction="ease"
+          >
+            {(transitionStyle) => (
+              <Alert
+                style={transitionStyle}
+                variant="light"
+                color="red"
+                radius="xl"
+                icon={<IconAlertCircle size={20} />}
+                title="Подбор не завершён"
+              >
+                <Stack gap="md">
+                  <Text size="sm">
+                    {getRecommendationErrorMessage(error)}
+                  </Text>
+                  <Group gap="sm">
+                    <Button
+                      size="xs"
+                      color="red"
+                      variant="light"
+                      onClick={() => runRecommendation(request.trim())}
+                    >
+                      Повторить запрос
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      color="gray"
+                      onClick={useDemoFallback}
+                    >
+                      Использовать быстрый подбор
+                    </Button>
+                  </Group>
+                </Stack>
+              </Alert>
+            )}
+          </Transition>
+
+          <Transition
+            mounted={Boolean(recommendation)}
             transition="slide-down"
             duration={260}
             timingFunction="ease"
           >
             {(transitionStyle) =>
-              recommendation && recommendedMechanic ? (
+              recommendation?.resultType === 'clarification_required' ? (
+                <Paper
+                  role="status"
+                  aria-live="polite"
+                  radius="xl"
+                  p={{ base: 'lg', sm: 'xl' }}
+                  style={{
+                    ...transitionStyle,
+                    border: '1px solid rgba(235, 151, 45, 0.25)',
+                    background:
+                      'linear-gradient(135deg, rgba(255, 243, 220, 0.8), rgba(255, 255, 255, 0.98) 72%)',
+                  }}
+                >
+                  <Group gap="md" wrap="nowrap" align="start">
+                    <ThemeIcon
+                      size={48}
+                      radius="xl"
+                      color="orange"
+                      variant="light"
+                    >
+                      <IconMessageStar size={23} />
+                    </ThemeIcon>
+                    <div>
+                      <Text size="xs" tt="uppercase" fw={750} c="orange.8">
+                        Нужно немного больше деталей
+                      </Text>
+                      <Title order={3} mt={3}>
+                        Уточните задачу продвижения
+                      </Title>
+                      <Text c="dimmed" mt={8} lh={1.6}>
+                        {recommendation.explanation}
+                      </Text>
+                    </div>
+                  </Group>
+                </Paper>
+              ) : recommendation && recommendedMechanic ? (
                 <Paper
                   role="status"
                   aria-live="polite"
@@ -303,7 +461,8 @@ export function MechanicsOverviewPage() {
                       <Group gap="md" wrap="nowrap" align="start">
                         <ThemeIcon size={48} radius="xl" color="brand" variant="filled">
                           {(() => {
-                            const RecommendedIcon = iconMap[recommendation.mechanicKey]
+                            const RecommendedIcon =
+                              iconMap[recommendedMechanic.key as MechanicKey]
                             return <RecommendedIcon size={23} />
                           })()}
                         </ThemeIcon>
@@ -317,7 +476,9 @@ export function MechanicsOverviewPage() {
                         </div>
                       </Group>
                       <Badge variant="outline" color="brand">
-                        Демо-режим
+                        {recommendation.source === 'llm'
+                          ? 'По данным кабинета'
+                          : 'Быстрый подбор'}
                       </Badge>
                     </Group>
 
@@ -330,8 +491,9 @@ export function MechanicsOverviewPage() {
 
                     <Group justify="space-between" align="center" gap="md">
                       <Text size="sm" c="dimmed" maw={560}>
-                        После подключения сервиса рекомендация также будет учитывать
-                        ассортимент и показатели вашего кабинета.
+                        {recommendation.source === 'llm'
+                          ? 'Рекомендация учитывает текущий ассортимент, остатки и доступные инструменты продвижения.'
+                          : 'Использован локальный подбор по ключевым словам без обращения к модели.'}
                       </Text>
                       <Button
                         component={Link}

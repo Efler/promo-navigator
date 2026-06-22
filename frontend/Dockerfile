@@ -15,6 +15,11 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
 
 FROM base AS build
 
+ARG VITE_API_BASE_URL=/ui-api/v1
+ARG VITE_LLM_RECOMMENDATIONS_ENABLED=true
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
+    VITE_LLM_RECOMMENDATIONS_ENABLED=$VITE_LLM_RECOMMENDATIONS_ENABLED
+
 RUN npm run build
 
 FROM nginx:1.29-alpine AS production

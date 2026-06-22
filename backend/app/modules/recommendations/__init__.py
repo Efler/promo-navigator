@@ -1,0 +1,1 @@
+"""Seller mechanic recommendation module."""

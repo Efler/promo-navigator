@@ -23,6 +23,7 @@ import {
 import { notifications } from '@mantine/notifications'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/use-auth'
+import { RecommendationProvider } from '../../features/recommendations/RecommendationProvider'
 import { TopAccent } from '../../shared/ui/TopAccent'
 import { mechanics } from './mechanics'
 
@@ -58,20 +59,21 @@ export function PrivateLayout() {
   }
 
   return (
-    <Box>
-      <Box
-        component="header"
-        bg="rgba(255, 255, 255, 0.98)"
-        style={{
-          borderBottom: '1px solid rgba(154, 65, 254, 0.1)',
-          boxShadow: '0 10px 28px rgba(154, 65, 254, 0.08)',
-        }}
-      >
-        <TopAccent />
+    <RecommendationProvider>
+      <Box>
+        <Box
+          component="header"
+          bg="rgba(255, 255, 255, 0.98)"
+          style={{
+            borderBottom: '1px solid rgba(154, 65, 254, 0.1)',
+            boxShadow: '0 10px 28px rgba(154, 65, 254, 0.08)',
+          }}
+        >
+          <TopAccent />
 
-        <Box className="marketplace-header">
-          <Container size="xl" h="100%">
-            <Group h="100%" gap="lg" wrap="nowrap">
+          <Box className="marketplace-header">
+            <Container size="xl" h="100%">
+              <Group h="100%" gap="lg" wrap="nowrap">
               <UnstyledButton
                 className="marketplace-logo"
                 type="button"
@@ -180,47 +182,50 @@ export function PrivateLayout() {
                   </Menu.Dropdown>
                 </Menu>
               </Group>
-            </Group>
+              </Group>
+            </Container>
+          </Box>
+
+          <Container size="xl" py="lg">
+            <Stack gap="md">
+              <div>
+                <Title order={2}>Промо-навигатор</Title>
+                <Text c="dimmed" mt={6}>
+                  Управление механиками продвижения для продавцов
+                </Text>
+              </div>
+
+              <Group gap="xs" wrap="wrap">
+                {mechanics.map((mechanic) => (
+                  <NavLink
+                    key={mechanic.key}
+                    to={mechanic.to}
+                    className={({ isActive }) =>
+                      isActive
+                        ? 'mechanic-link mechanic-link--active'
+                        : 'mechanic-link'
+                    }
+                    end={mechanic.to === '/app'}
+                  >
+                    {mechanic.label}
+                    {mechanic.isBeta ? (
+                      <Text span size="xs" c="beta.4">
+                        Beta
+                      </Text>
+                    ) : null}
+                  </NavLink>
+                ))}
+              </Group>
+            </Stack>
           </Container>
         </Box>
 
-        <Container size="xl" py="lg">
-          <Stack gap="md">
-            <div>
-              <Title order={2}>Промо-навигатор</Title>
-              <Text c="dimmed" mt={6}>
-                Управление механиками продвижения для продавцов
-              </Text>
-            </div>
-
-            <Group gap="xs" wrap="wrap">
-              {mechanics.map((mechanic) => (
-                <NavLink
-                  key={mechanic.key}
-                  to={mechanic.to}
-                  className={({ isActive }) =>
-                    isActive ? 'mechanic-link mechanic-link--active' : 'mechanic-link'
-                  }
-                  end={mechanic.to === '/app'}
-                >
-                  {mechanic.label}
-                  {mechanic.isBeta ? (
-                    <Text span size="xs" c="beta.4">
-                      Beta
-                    </Text>
-                  ) : null}
-                </NavLink>
-              ))}
-            </Group>
-          </Stack>
-        </Container>
+        <Box component="main">
+          <Container size="xl" py="xl">
+            <Outlet />
+          </Container>
+        </Box>
       </Box>
-
-      <Box component="main">
-        <Container size="xl" py="xl">
-          <Outlet />
-        </Container>
-      </Box>
-    </Box>
+    </RecommendationProvider>
   )
 }

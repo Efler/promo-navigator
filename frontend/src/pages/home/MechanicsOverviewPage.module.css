@@ -1,0 +1,52 @@
+.loadingIcon {
+  animation: recommendation-pulse 1.8s ease-in-out infinite;
+}
+
+.loadingCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.loadingCard::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.58) 50%,
+    transparent 66%
+  );
+  transform: translateX(-100%);
+  animation: recommendation-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes recommendation-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes recommendation-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingIcon,
+  .loadingCard::after {
+    animation: none;
+  }
+}
