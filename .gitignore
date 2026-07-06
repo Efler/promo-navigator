@@ -1,7 +1,6 @@
 .idea
 
 todo.txt
-AGENTS.md
 DOCS.md
 
 /volumes
@@ -45,6 +44,4 @@ frontend/*.tsbuildinfo
 .run
 
 # CICD
-/infra/scripts/redeploy-app.sh
-/infra/scripts/ollama-runtime.md
 .github
